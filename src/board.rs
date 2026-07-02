@@ -58,7 +58,7 @@ impl Add for Cell {
 
 // --------------------------------------------------------------------
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 /// Структура результата выстрела
 pub enum ShotResult {
     Hit,
@@ -112,4 +112,10 @@ impl Ship {
     pub fn hit(&self, cell: &Cell) -> bool {
         self.cells().contains(cell)
     }
+}
+
+fn main() {
+    // Заглушка, чтобы бинарник собирался.
+    // Позже сюда можно вставить логику запуска игры.
+    println!("Board binary is not ready yet.");
 }

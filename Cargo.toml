@@ -5,3 +5,19 @@ edition = "2024"
 
 [dependencies]
 rand = "0.10.1"
+
+[lib]
+name = "sea_battle"
+path = "src/lib.rs"
+
+# [[bin]]
+# name = "ver1"
+# path = "src/bin/main_1.rs"
+
+# [[bin]]
+# name = "ver2"
+# path = "src/bin/main_2.rs"
+
+# [[bin]]
+# name = "ver3"
+# path = "src/bin/main_3.rs"
