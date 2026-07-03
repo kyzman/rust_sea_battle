@@ -93,7 +93,7 @@ pub enum ShotResult {
     Used,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 /// Структура выстрел
 pub struct Shot {
     pub coordinates: Cell,
@@ -266,6 +266,7 @@ impl Board {
                     coordinates: d,
                     result: ShotResult::Dead,
                 };
+                self.first_hit.result = ShotResult::Dead;
                 return ShotResult::Dead;
             }
             if !matches!(self.prev_hit.result, ShotResult::Hit) {
@@ -318,7 +319,12 @@ impl Board {
 
 impl std::fmt::Display for Board {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut res = String::from("  1 2 3 4 5 6\n");
+        let mut res = String::from("  "); // два пробела как отступ
+        for i in 1..=self.size {
+            res.push_str(&i.to_string());
+            res.push(' '); // пробел после каждого числа
+        }
+        res.push('\n');
         for (i, row) in self.field.iter().enumerate() {
             res.push_str(&format!("{} ", i + 1));
             for &cell in row {

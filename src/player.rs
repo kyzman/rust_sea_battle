@@ -60,16 +60,16 @@ impl Game {
         loop {
             println!(
                 "User[{}]:\n{}\nAI[{}]:\n{}",
-                user_step, self.user_board, ai_step, self.ai_board
+                ai_step, self.user_board, user_step, self.ai_board
             );
 
             // --- ХОД ИГРОКА ---
-            while self.user_move() || self.ai_board.defeat() {
+            while self.user_move() {
                 user_step += 1;
                 io::stdout().flush().unwrap();
                 println!(
                     "User[{}]:\n{}\nAI[{}]:\n{}",
-                    user_step, self.user_board, ai_step, self.ai_board
+                    ai_step, self.user_board, user_step, self.ai_board
                 );
             }
             // Проверяем победу сразу после хода игрока
@@ -80,12 +80,12 @@ impl Game {
 
             // --- ХОД ИИ ---
             // Теперь нам нужно зациклить ход ИИ, пока он попадает
-            while self.ai_move(&mut rng) || self.user_board.defeat() {
+            while self.ai_move(&mut rng) {
                 ai_step += 1;
                 io::stdout().flush().unwrap();
                 println!(
                     "User[{}]:\n{}\nAI[{}]:\n{}",
-                    user_step, self.user_board, ai_step, self.ai_board
+                    ai_step, self.user_board, user_step, self.ai_board
                 );
             }
             // Проверяем поражение игрока сразу после каждого выстрела ИИ
@@ -119,23 +119,35 @@ impl Game {
         }
     }
     pub fn ai_move(&mut self, rng: &mut impl RngExt) -> bool {
-        let d = if matches!(self.user_board.prev_hit.result, ShotResult::Hit) {
+        // Сначала пытаемся найти цель от последнего попадания (prev_hit)
+        let mut target: Option<Cell> = if matches!(self.user_board.prev_hit.result, ShotResult::Hit)
+        {
             self.user_board
                 .get_free_cross(self.user_board.prev_hit.coordinates)
                 .into_iter()
                 .next()
-                .unwrap_or(Cell::new(
-                    rng.random_range(0..self.ai_board.size as i32),
-                    rng.random_range(0..self.ai_board.size as i32),
-                ))
         } else {
+            None
+        };
+
+        // Если от prev_hit стрелять некуда — пробуем от first_hit
+        if target.is_none() && matches!(self.user_board.first_hit.result, ShotResult::Hit) {
+            target = self
+                .user_board
+                .get_free_cross(self.user_board.first_hit.coordinates)
+                .into_iter()
+                .find(|c| !self.user_board.busy.contains(c));
+        }
+
+        // Если всё равно нет цели — случайный выстрел
+        let shot = target.unwrap_or_else(|| {
             Cell::new(
                 rng.random_range(0..self.ai_board.size as i32),
                 rng.random_range(0..self.ai_board.size as i32),
             )
-        };
-        eprintln!("{:?}", d);
-        match self.user_board.shot(d) {
+        });
+        eprintln!("{:?}", shot);
+        match self.user_board.shot(shot) {
             ShotResult::Miss => return false,
             _ => return true,
         }
