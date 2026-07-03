@@ -36,22 +36,22 @@ fn test_ship_cells_horizontal() {
         cells,
         vec![
             sea_battle::Cell::new(0, 0),
-            sea_battle::Cell::new(0, 1),
-            sea_battle::Cell::new(0, 2),
+            sea_battle::Cell::new(1, 0),
+            sea_battle::Cell::new(2, 0),
         ]
     );
 }
 
 #[test]
 fn test_ship_cells_vertical() {
-    let ship = sea_battle::Ship::new(sea_battle::Cell::new(2, 5), 4, false); // вертикальный, длина 4
+    let ship = sea_battle::Ship::new(sea_battle::Cell::new(5, 2), 4, false); // вертикальный, длина 4
     let cells = ship.cells();
     assert_eq!(
         cells,
         vec![
-            sea_battle::Cell::new(2, 5),
-            sea_battle::Cell::new(3, 5),
-            sea_battle::Cell::new(4, 5),
+            sea_battle::Cell::new(5, 2),
+            sea_battle::Cell::new(5, 3),
+            sea_battle::Cell::new(5, 4),
             sea_battle::Cell::new(5, 5),
         ]
     );
@@ -61,7 +61,7 @@ fn test_ship_cells_vertical() {
 fn test_ship_hit_true() {
     let ship = sea_battle::Ship::new(sea_battle::Cell::new(10, 10), 2, true);
     assert!(ship.hit(&sea_battle::Cell::new(10, 10)));
-    assert!(ship.hit(&sea_battle::Cell::new(10, 11)));
+    assert!(ship.hit(&sea_battle::Cell::new(11, 10)));
 }
 
 #[test]
@@ -69,7 +69,7 @@ fn test_ship_hit_false() {
     let ship = sea_battle::Ship::new(sea_battle::Cell::new(10, 10), 2, true);
     // Рядом, но не на корабле
     assert!(!ship.hit(&sea_battle::Cell::new(10, 9)));
-    assert!(!ship.hit(&sea_battle::Cell::new(11, 10)));
+    assert!(!ship.hit(&sea_battle::Cell::new(10, 11)));
     // Далеко
     assert!(!ship.hit(&sea_battle::Cell::new(0, 0)));
 }
