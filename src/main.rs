@@ -1,4 +1,5 @@
 mod board;
+mod player;
 
 const FIELD_SIZE: i8 = 6;
 const SHIPS: [u8; 4] = [4, 3, 2, 1];
@@ -41,4 +42,7 @@ fn main() {
     println!("Test hit ship 1: {:?}", test_ship.hit(&test_cell));
     let test_cell = board::Cell::new(4, 5);
     println!("Test hit ship 2: {:?}", test_ship.hit(&test_cell));
+
+    let mut game = player::Game::new(FIELD_SIZE as usize, &SHIPS);
+    game.loop_game();
 }
