@@ -80,11 +80,11 @@ fn test_ship_hit_false() {
 fn test_board_error_display() {
     assert_eq!(
         sea_battle::BoardError::Out.to_string(),
-        "Выстрел за пределы поля!"
+        "За пределами поля!"
     );
     assert_eq!(
         sea_battle::BoardError::Used.to_string(),
-        "Вы сюда уже стреляли!"
+        "Клетка уже занята!"
     );
     assert_eq!(
         sea_battle::BoardError::WrongShip.to_string(),

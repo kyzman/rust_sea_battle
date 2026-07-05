@@ -32,11 +32,11 @@ pub enum BoardError {
 impl fmt::Display for BoardError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            // Если сработало "Выстрел за пределы", вернем строку
-            BoardError::Out => write!(f, "Выстрел за пределы поля!"),
+            // Если попытка разместить "за пределы поля", вернем строку
+            BoardError::Out => write!(f, "За пределами поля!"),
 
             // Если клетка уже занята
-            BoardError::Used => write!(f, "Вы сюда уже стреляли!"),
+            BoardError::Used => write!(f, "Клетка уже занята!"),
 
             // Если корабль нельзя поставить
             BoardError::WrongShip => write!(f, "Не удалось разместить корабль"),
