@@ -1,4 +1,4 @@
-use rand::{RngExt, rng};
+use rand::rng;
 use sea_battle::{Board, Cell, Game, Ship, Shot, ShotResult};
 
 #[test]
@@ -30,7 +30,7 @@ fn test_ai_gets_extra_turns_on_hit() {
 
     // Теперь запускаем один «ход» ИИ — он должен сделать минимум 4 выстрела (по длине корабля)
     let mut ai_shot_count = 0;
-    while game.ai_move(&mut rng) {
+    while !(game.ai_move(&mut rng) == ShotResult::Miss) {
         ai_shot_count += 1;
         // Если корабль потоплен, флаг prev_hit должен сброситься, и цикл остановится
         if game.user_board.defeat() {
@@ -92,7 +92,10 @@ fn test_ai_uses_first_hit_after_miss() {
     let shot = game.ai_move(&mut rng);
     // Проверяем, что выстрел был сделан именно в (2,3) и это попадание
     // Так как ai_move не возвращает координаты, проверяем busy и результат
-    assert!(shot, "ИИ должен попасть в оставшуюся часть корабля");
+    assert!(
+        shot == ShotResult::Hit,
+        "ИИ должен попасть в оставшуюся часть корабля"
+    );
 
     // Убеждаемся, что (2,3) теперь в busy
     assert!(game.user_board.busy.contains(&Cell::new(2, 3)));

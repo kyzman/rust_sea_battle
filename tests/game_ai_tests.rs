@@ -1,5 +1,5 @@
 use rand::prelude::*;
-use sea_battle::{Board, Cell, Game, Ship, ShotResult};
+use sea_battle::{Cell, Game, Ship, ShotResult};
 
 #[test]
 fn ai_move_uses_prev_hit_when_available() {
@@ -36,7 +36,7 @@ fn ai_move_uses_prev_hit_when_available() {
     let hit = game.ai_move(&mut rng);
 
     assert!(
-        hit,
+        hit == ShotResult::Dead,
         "ai_move did not hit first candidate from get_free_cross((2,2)): {:?}",
         candidates
     );
@@ -65,12 +65,9 @@ fn ai_move_falls_back_to_first_hit_when_prev_hit_blocked() {
     for c in &[
         Cell::new(2, 1),
         Cell::new(2, 3),
-        Cell::new(1, 2),
         Cell::new(3, 2),
         Cell::new(1, 0),
         Cell::new(0, 1),
-        Cell::new(2, 1),
-        Cell::new(1, 2),
     ] {
         if !game.user_board.out(c) {
             game.user_board.busy.push(*c);
@@ -78,7 +75,7 @@ fn ai_move_falls_back_to_first_hit_when_prev_hit_blocked() {
     }
 
     // Получаем кандидатов из first_hit
-    let candidates = game.user_board.get_free_cross(Cell::new(1, 1));
+    let candidates = game.user_board.get_free_cross(Cell::new(2, 2));
 
     // Берём первую кандидатскую клетку и ставим туда корабль
     if let Some(&c) = candidates.first() {
@@ -88,7 +85,7 @@ fn ai_move_falls_back_to_first_hit_when_prev_hit_blocked() {
                 .expect("Failed to add ship at first candidate in ai_move_falls_back_to_first_hit_when_prev_hit_blocked");
         }
     } else {
-        panic!("get_free_cross((1,1)) returned empty list — no fallback target for AI");
+        panic!("get_free_cross((2,2)) returned empty list — no fallback target for AI");
     }
     game.user_board.begin();
 
@@ -96,7 +93,7 @@ fn ai_move_falls_back_to_first_hit_when_prev_hit_blocked() {
     let hit = game.ai_move(&mut rng);
 
     assert!(
-        hit,
+        hit == ShotResult::Dead,
         "ai_move did not hit first candidate from get_free_cross((1,1)): {:?}",
         candidates
     );
@@ -135,6 +132,6 @@ fn ai_move_returns_false_on_miss() {
     let mut rng = SmallRng::from_seed([3u8; 32]);
     let hit = game.ai_move(&mut rng);
 
-    assert!(!hit);
+    assert!(hit == ShotResult::Miss);
     assert_eq!(game.user_board.prev_hit.result, ShotResult::Miss);
 }

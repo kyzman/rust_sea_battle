@@ -25,7 +25,6 @@ impl fmt::Display for SeaField {
 #[derive(Debug, PartialEq, Eq)]
 pub enum BoardError {
     Out,
-    Used,
     WrongShip,
 }
 
@@ -34,9 +33,6 @@ impl fmt::Display for BoardError {
         match self {
             // Если попытка разместить "за пределы поля", вернем строку
             BoardError::Out => write!(f, "За пределами поля!"),
-
-            // Если клетка уже занята
-            BoardError::Used => write!(f, "Клетка уже занята!"),
 
             // Если корабль нельзя поставить
             BoardError::WrongShip => write!(f, "Не удалось разместить корабль"),
@@ -55,6 +51,7 @@ pub struct Cell {
 
 impl Cell {
     /// Создание ячейки
+    /// В реальности x - это вертикаль, а y - горизонталь.
     pub fn new(x: i32, y: i32) -> Self {
         Self { x, y }
     }
@@ -188,8 +185,11 @@ impl Board {
     }
 
     /// Выдаёт значение ячейки по координатам
-    pub fn get_cell(&self, d: &Cell) -> SeaField {
-        self.field[d.x as usize][d.y as usize]
+    pub fn get_cell(&self, d: &Cell) -> Result<SeaField, BoardError> {
+        if self.out(d) {
+            return Err(BoardError::Out);
+        }
+        Ok(self.field[d.x as usize][d.y as usize])
     }
 
     /// Сформировать честный контур вокруг корабля (show - отображать контур, если true или только записать в "занятые" если false)
@@ -303,7 +303,7 @@ impl Board {
         let mut result = Vec::new();
         for &(dx, dy) in &near {
             let cur = Cell::new(d.x + dx, d.y + dy);
-            if !self.out(&cur) && self.busy.contains(&cur) && self.get_cell(&cur) == SeaField::Hit {
+            if self.busy.contains(&cur) && self.get_cell(&cur) == Ok(SeaField::Hit) {
                 let cell = d + (d - cur);
                 if !self.out(&cell) && !self.busy.contains(&cell) {
                     return vec![cell];

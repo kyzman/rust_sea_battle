@@ -17,7 +17,7 @@ impl Game {
             ai_board,
         }
     }
-    pub fn try_board(size: usize, ships: &[u8]) -> Option<Board> {
+    fn try_board(size: usize, ships: &[u8]) -> Option<Board> {
         let mut board = Board::new(false, size);
         let mut rng = rand::rng();
         for ship_size in ships {
@@ -51,26 +51,37 @@ impl Game {
             }
         }
     }
+
+    fn draw_fieds(&self, ai_step: usize, user_step: usize) {
+        io::stdout().flush().unwrap();
+        println!(
+            "User[{}]:\n{}\nAI[{}]:\n{}",
+            ai_step, self.user_board, user_step, self.ai_board
+        );
+    }
+
     pub fn loop_game(&mut self) {
         // Для rand 10+ используем rand::rng()
         let mut rng = rand::rng();
-        let mut ai_step: usize = 0;
-        let mut user_step: usize = 0;
+        let mut ai_step_num: usize = 0;
+        let mut user_step_num: usize = 0;
+        let mut ai_step_res: ShotResult;
+        let mut user_step_res: ShotResult;
+
+        self.draw_fieds(ai_step_num, user_step_num);
 
         loop {
-            println!(
-                "User[{}]:\n{}\nAI[{}]:\n{}",
-                ai_step, self.user_board, user_step, self.ai_board
-            );
-
             // --- ХОД ИГРОКА ---
-            while self.user_move() {
-                user_step += 1;
-                io::stdout().flush().unwrap();
-                println!(
-                    "User[{}]:\n{}\nAI[{}]:\n{}",
-                    ai_step, self.user_board, user_step, self.ai_board
-                );
+            // Зацикливаем ход, пока он попадает или нет победы
+            loop {
+                user_step_res = self.user_move();
+                if user_step_res != ShotResult::Out && user_step_res != ShotResult::Used {
+                    user_step_num += 1
+                }
+                self.draw_fieds(ai_step_num, user_step_num);
+                if user_step_res == ShotResult::Miss || self.ai_board.defeat() {
+                    break;
+                }
             }
             // Проверяем победу сразу после хода игрока
             if self.ai_board.defeat() {
@@ -79,27 +90,27 @@ impl Game {
             }
 
             // --- ХОД ИИ ---
-            // Теперь нам нужно зациклить ход ИИ, пока он попадает
-            while self.ai_move(&mut rng) {
-                ai_step += 1;
-                io::stdout().flush().unwrap();
-                println!(
-                    "User[{}]:\n{}\nAI[{}]:\n{}",
-                    ai_step, self.user_board, user_step, self.ai_board
-                );
+            // Теперь нам нужно зациклить ход ИИ, пока он попадает или не победил
+            loop {
+                ai_step_res = self.ai_move(&mut rng);
+                if ai_step_res != ShotResult::Out && ai_step_res != ShotResult::Used {
+                    ai_step_num += 1
+                }
+                self.draw_fieds(ai_step_num, user_step_num);
+                if ai_step_res == ShotResult::Miss || self.user_board.defeat() {
+                    break;
+                }
             }
             // Проверяем поражение игрока сразу после каждого выстрела ИИ
             if self.user_board.defeat() {
+                self.draw_fieds(ai_step_num, user_step_num);
                 println!("AI wins!");
                 return; // Завершаем всю функцию game
             }
-
-            // Опционально: можно добавить вывод сообщения, чтобы видеть, что ИИ ходит повторно
-            // println!("AI hit again! Shooting again...");
         }
     }
 
-    pub fn user_move(&mut self) -> bool {
+    pub fn user_move(&mut self) -> ShotResult {
         loop {
             print!("Shot (x y): ");
             io::stdout().flush().unwrap();
@@ -112,13 +123,12 @@ impl Game {
             if coords.len() != 2 {
                 continue;
             }
-            match self.ai_board.shot(Cell::new(coords[0] - 1, coords[1] - 1)) {
-                ShotResult::Miss => return false,
-                _ => return true,
-            }
+            // Для корректного отображения пришлось x и y поменять местами,
+            //  т.к. на самом деле у нас есть проблема в том, что в vec хранятся данные не правильно (x - это y, y - это x)
+            return self.ai_board.shot(Cell::new(coords[1] - 1, coords[0] - 1));
         }
     }
-    pub fn ai_move(&mut self, rng: &mut impl RngExt) -> bool {
+    pub fn ai_move(&mut self, rng: &mut impl RngExt) -> ShotResult {
         // Сначала пытаемся найти цель от последнего попадания (prev_hit)
         let mut target: Option<Cell> = if matches!(self.user_board.prev_hit.result, ShotResult::Hit)
         {
@@ -146,10 +156,7 @@ impl Game {
                 rng.random_range(0..self.ai_board.size as i32),
             )
         });
-        eprintln!("{:?}", shot);
-        match self.user_board.shot(shot) {
-            ShotResult::Miss => return false,
-            _ => return true,
-        }
+
+        self.user_board.shot(shot)
     }
 }

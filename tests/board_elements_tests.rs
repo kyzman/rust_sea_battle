@@ -83,10 +83,6 @@ fn test_board_error_display() {
         "За пределами поля!"
     );
     assert_eq!(
-        sea_battle::BoardError::Used.to_string(),
-        "Клетка уже занята!"
-    );
-    assert_eq!(
         sea_battle::BoardError::WrongShip.to_string(),
         "Не удалось разместить корабль"
     );
