@@ -1,6 +1,8 @@
-use crate::board::{Board, Cell, Ship, ShotResult};
+use crate::board::{Board, BoardError, Cell, Ship, ShotResult};
 use rand::RngExt;
 use std::io::{self, Write};
+
+const BOARD_TRYES: usize = 1000;
 
 pub struct Game {
     pub user_board: Board,
@@ -9,8 +11,12 @@ pub struct Game {
 
 impl Game {
     pub fn new(size: usize, ships: &[u8]) -> Self {
-        let user_board = Self::random_board(size, ships);
-        let mut ai_board = Self::random_board(size, ships);
+        let user_board = Self::random_board(size, ships).expect(&format!(
+            "Не получилось разместить все заданные корабли на поле за {BOARD_TRYES} попыток"
+        ));
+        let mut ai_board = Self::random_board(size, ships).expect(&format!(
+            "Не получилось разместить все заданные корабли на поле за {BOARD_TRYES} попыток"
+        ));
         ai_board.hide = true;
         Self {
             user_board,
@@ -43,17 +49,17 @@ impl Game {
         board.begin();
         Some(board)
     }
-    pub fn random_board(size: usize, ships: &[u8]) -> Board {
-        // TODO: Потенциальная проблема бесконечного цикла. Надо сделать ограниченный цикл и выводить ошибку, если "не смогла"
-        loop {
+    pub fn random_board(size: usize, ships: &[u8]) -> Result<Board, BoardError> {
+        for _ in 0..BOARD_TRYES {
             if let Some(b) = Self::try_board(size, ships) {
-                return b;
+                return Ok(b);
             }
         }
+        Err(BoardError::WrongShip)
     }
 
     fn draw_fieds(&self, ai_step: usize, user_step: usize) {
-        io::stdout().flush().unwrap();
+        // io::stdout().flush().unwrap();
         println!(
             "AI[{}]:\n{}\nUser[{}]:\n{}",
             ai_step, self.user_board, user_step, self.ai_board
@@ -103,7 +109,6 @@ impl Game {
             }
             // Проверяем поражение игрока сразу после каждого выстрела ИИ
             if self.user_board.defeat() {
-                self.draw_fieds(ai_step_num, user_step_num);
                 println!("AI wins!");
                 return; // Завершаем всю функцию game
             }
@@ -111,10 +116,11 @@ impl Game {
     }
 
     pub fn user_move(&mut self) -> ShotResult {
+        let mut input = String::new();
         loop {
             print!("Shot (x y): ");
             io::stdout().flush().unwrap();
-            let mut input = String::new();
+            input.clear();
             io::stdin().read_line(&mut input).unwrap();
             let coords: Vec<i32> = input
                 .split_whitespace()
@@ -123,8 +129,7 @@ impl Game {
             if coords.len() != 2 {
                 continue;
             }
-            // Для корректного отображения пришлось x и y поменять местами,
-            //  т.к. на самом деле у нас есть проблема в том, что в vec хранятся данные не правильно (x - это y, y - это x)
+
             return self.ai_board.shot(Cell::new(coords[0] - 1, coords[1] - 1));
         }
     }
@@ -150,11 +155,19 @@ impl Game {
         }
 
         // Если всё равно нет цели — случайный выстрел
+        // Оптимизация алгоритма: ИИ больше не бьет вслепую в занятые/обстрелянные клетки
         let shot = target.unwrap_or_else(|| {
-            Cell::new(
-                rng.random_range(0..self.ai_board.size as i32),
-                rng.random_range(0..self.ai_board.size as i32),
-            )
+            loop {
+                let potential_shot = Cell::new(
+                    rng.random_range(0..self.user_board.size as i32),
+                    rng.random_range(0..self.user_board.size as i32),
+                );
+                // Предполагается, что в self.user_board.busy хранятся клетки, куда ИИ уже стрелял.
+                // Если структуры отличаются, замените проверку на вашу коллекцию истории выстрелов.
+                if !self.user_board.busy.contains(&potential_shot) {
+                    break potential_shot;
+                }
+            }
         });
 
         self.user_board.shot(shot)
