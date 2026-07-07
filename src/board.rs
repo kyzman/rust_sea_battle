@@ -189,7 +189,7 @@ impl Board {
         if self.out(d) {
             return Err(BoardError::Out);
         }
-        Ok(self.field[d.x as usize][d.y as usize])
+        Ok(self.field[d.y as usize][d.x as usize])
     }
 
     /// Сформировать честный контур вокруг корабля (show - отображать контур, если true или только записать в "занятые" если false)
@@ -214,7 +214,7 @@ impl Board {
                     // если она не выходит за пределы доски и не занята...
                     if show {
                         // если отображать
-                        self.field[cur.x as usize][cur.y as usize] = SeaField::Miss; // ... то ставим знак промаха в ячейку
+                        self.field[cur.y as usize][cur.x as usize] = SeaField::Miss; // ... то ставим знак промаха в ячейку
                     }
                     self.busy.push(cur); // добавляем ячейку в список занятых
                 }
@@ -235,7 +235,7 @@ impl Board {
         // Если всё хорошо
         for d in ship.cells() {
             // Для каждой ячейки корабля
-            self.field[d.x as usize][d.y as usize] = SeaField::Ship; // поставим в каждой ячейке палубу корабля
+            self.field[d.y as usize][d.x as usize] = SeaField::Ship; // поставим в каждой ячейке палубу корабля
             self.busy.push(d); // и запишем ячейку в список занятых (ячейки расположения корабля)
         }
         self.ship_board(&ship, false); // обводим список собственных кораблей по контуру и только записываем окружающие ячейки в занятые, без отображения (параметр false)
@@ -257,7 +257,7 @@ impl Board {
         // Проходимся в цикле по кораблям и проверяем, принадлежит ли ячейка какому-либо кораблю или нет и если принадлежит, то:
         if let Some(i) = self.ships.iter().position(|s| s.hit(&d)) {
             self.ships[i].lives -= 1; // уменьшаем количество жизней корабля
-            self.field[d.x as usize][d.y as usize] = SeaField::Hit; // маркируем соответствующим образом ячейку
+            self.field[d.y as usize][d.x as usize] = SeaField::Hit; // маркируем соответствующим образом ячейку
             if self.ships[i].lives == 0 {
                 // если у корабля кончились жизни, то
                 self.count += 1; // прибавляем к счётчику уничтоженных кораблей единицу
@@ -282,7 +282,7 @@ impl Board {
             return ShotResult::Hit;
         }
         // если никакой корабль не поражён, срабатывает этот код, означающий промах
-        self.field[d.x as usize][d.y as usize] = SeaField::Miss;
+        self.field[d.y as usize][d.x as usize] = SeaField::Miss;
         ShotResult::Miss
     }
 

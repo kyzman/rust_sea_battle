@@ -55,7 +55,7 @@ impl Game {
     fn draw_fieds(&self, ai_step: usize, user_step: usize) {
         io::stdout().flush().unwrap();
         println!(
-            "User[{}]:\n{}\nAI[{}]:\n{}",
+            "AI[{}]:\n{}\nUser[{}]:\n{}",
             ai_step, self.user_board, user_step, self.ai_board
         );
     }
@@ -125,7 +125,7 @@ impl Game {
             }
             // Для корректного отображения пришлось x и y поменять местами,
             //  т.к. на самом деле у нас есть проблема в том, что в vec хранятся данные не правильно (x - это y, y - это x)
-            return self.ai_board.shot(Cell::new(coords[1] - 1, coords[0] - 1));
+            return self.ai_board.shot(Cell::new(coords[0] - 1, coords[1] - 1));
         }
     }
     pub fn ai_move(&mut self, rng: &mut impl RngExt) -> ShotResult {

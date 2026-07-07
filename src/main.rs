@@ -1,10 +1,10 @@
 mod board;
 mod player;
 
-// const FIELD_SIZE: i8 = 8;
-const FIELD_SIZE: i8 = 6;
-// const SHIPS: [u8; 10] = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1];
-const SHIPS: [u8; 4] = [4, 3, 2, 1];
+const FIELD_SIZE: i8 = 8;
+// const FIELD_SIZE: i8 = 6;
+const SHIPS: [u8; 10] = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1];
+// const SHIPS: [u8; 4] = [4, 3, 2, 1];
 
 fn main() {
     println!(
