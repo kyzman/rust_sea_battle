@@ -12,10 +12,10 @@ pub enum SeaField {
 impl fmt::Display for SeaField {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            SeaField::Sea => write!(f, "~"),
-            SeaField::Ship => write!(f, "█"),
-            SeaField::Hit => write!(f, "X"),
-            SeaField::Miss => write!(f, "▪"),
+            SeaField::Sea => write!(f, "🌊"),
+            SeaField::Ship => write!(f, "🟨"),
+            SeaField::Hit => write!(f, "💢"),
+            SeaField::Miss => write!(f, " •"),
         }
     }
 }
@@ -319,20 +319,27 @@ impl Board {
 
 impl std::fmt::Display for Board {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut res = String::from("  "); // два пробела как отступ
+        let mut res = String::from("   "); // два пробела как отступ
         for i in 1..=self.size {
             res.push_str(&i.to_string());
-            res.push(' '); // пробел после каждого числа
+            if i < 9 {
+                // пробел после каждого числа, которое меньше 10
+                res.push(' ');
+            }
         }
         res.push('\n');
+        let mut space = " ";
         for (i, row) in self.field.iter().enumerate() {
-            res.push_str(&format!("{} ", i + 1));
+            if i > 8 {
+                space = "";
+            }
+            res.push_str(&format!("{}{}", space, i + 1));
             for &cell in row {
                 if self.hide && cell == SeaField::Ship {
-                    res.push_str(&format!("{} ", SeaField::Sea.to_string()));
+                    res.push_str(&format!("{}", SeaField::Sea.to_string()));
                 } else {
                     res.push_str(&cell.to_string());
-                    res.push(' ');
+                    // res.push(' ');
                 }
             }
             res.push('\n');
